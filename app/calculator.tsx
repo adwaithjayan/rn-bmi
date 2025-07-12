@@ -1,20 +1,56 @@
 import { ReuseCard } from "@/components/ReuseCard";
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Switch } from "@/components/switch";
 import { Slider } from "@miblanchard/react-native-slider";
-import Toggle from "react-native-toggle-element";
+import { useRouter } from "expo-router";
 
 export default function Calculator() {
-  const [age, setAge] = useState(0);
-  const [weight, setWeight] = useState(0);
+  const [age, setAge] = useState(20);
+  const [weight, setWeight] = useState(50);
   const [height, setHeight] = useState(50);
-  const [toggleValue, setToggleValue] = useState(false);
+  const [gender, setGender] = useState(false);
+
+  const router = useRouter();
+
+  const calculateBmi = () => {
+    const heightInMeters = height / 100; // convert cm to meters
+    const mbivalue = weight / (heightInMeters * heightInMeters);
+    const bmi = parseFloat(mbivalue.toFixed(2));
+    let message;
+
+    if (gender === true) {
+      // female
+      if (bmi < 18.5) {
+        message = "Underweight";
+      } else if (bmi < 24) {
+        message = "Normal";
+      } else if (bmi < 30) {
+        message = "Overweight";
+      } else {
+        message = "Obesity";
+      }
+    } else {
+      // male
+      if (bmi < 18.5) {
+        message = "Underweight";
+      } else if (bmi < 25) {
+        message = "Normal";
+      } else if (bmi < 30) {
+        message = "Overweight";
+      } else {
+        message = "Obesity";
+      }
+    }
+
+    router.push({ pathname: "/result", params: { bmi, message } });
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#F4F3FF] p-8">
+      <StatusBar barStyle="dark-content" />
       <View className="flex-1 flex-col w-full items-center justify-between gap-6">
         <Text
           style={{ fontFamily: "Inter_400Regular", color: "#081854" }}
@@ -90,35 +126,56 @@ export default function Calculator() {
           </View>
         </View>
         <View className="bg-white rounded-xl w-full">
-          <View>
+          <View className="flex-col items-center px-7 pt-7 gap-4">
             <Text
               style={{ fontFamily: "Inter_400Regular", color: "#081854" }}
               className="font-normal text-lg text-center"
             >
               Gender
             </Text>
-            <View className="w-full">
-              <Toggle
-                value={toggleValue}
-                onPress={(newState) => setToggleValue(newState)}
-                trackBar={{
-                  inActiveBackgroundColor: "#F4F3FF",
-                  activeBackgroundColor: "#F4F3FF",
-                }}
-                thumbButton={{
-                  width: 50,
-                  height: 50,
-                  radius: 25,
-                  activeBackgroundColor: "#6C63FF",
-                  inActiveBackgroundColor: "#6C63FF",
-                }}
-                rightComponent={<FontAwesome name="plus" size={25} />}
-              />
+            <View className="flex-row items-center justify-center gap-3 pb-8">
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => setGender(false)}
+              >
+                <Text
+                  style={{ fontFamily: "Inter_400Regular", color: "#081854" }}
+                  className="font-normal text-lg text-center"
+                >
+                  Male
+                </Text>
+              </TouchableOpacity>
+              <View className="w-[135px]">
+                <Switch
+                  checked={gender}
+                  onCheckedChange={setGender}
+                  nativeID="airplane-mode"
+                />
+              </View>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => setGender(true)}
+              >
+                <Text
+                  style={{ fontFamily: "Inter_400Regular", color: "#081854" }}
+                  className="font-normal text-lg text-center"
+                >
+                  Female
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
-        <TouchableOpacity>
-          <Text>Calculate BMI</Text>
+        <TouchableOpacity
+          onPress={calculateBmi}
+          className="bg-[#6C63FF] w-full h-[75] items-center justify-center rounded-full"
+        >
+          <Text
+            className="text-center text-white font-medium text-lg"
+            style={{ fontFamily: "Inter_500Medium" }}
+          >
+            Calculate BMI
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

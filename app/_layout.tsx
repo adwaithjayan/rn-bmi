@@ -1,3 +1,4 @@
+import Loader from "@/components/Loader";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -7,13 +8,17 @@ import {
   Inter_800ExtraBold_Italic,
   useFonts,
 } from "@expo-google-fonts/inter";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+
   const [loaded, error] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -24,17 +29,30 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loaded || error) {
+    const prepare = async () => {
+      if (!loaded && !error) return <Loader />;
+
+      const hasLaunched = await AsyncStorage.getItem("hasLaunched");
+      if (hasLaunched === null) {
+        await AsyncStorage.setItem("hasLaunched", "true");
+        setInitialRoute("index");
+      } else {
+        setInitialRoute("calculator");
+      }
+
       SplashScreen.hideAsync();
-    }
+    };
+
+    prepare();
   }, [loaded, error]);
 
-  if (!loaded && !error) {
-    return null;
+  if (!loaded || !initialRoute) {
+    return <Loader />;
   }
+
   return (
     <Stack
-      initialRouteName="calculator"
+      initialRouteName={initialRoute}
       screenOptions={{ headerShown: false, statusBarStyle: "dark" }}
     >
       <Stack.Screen name="index" />
